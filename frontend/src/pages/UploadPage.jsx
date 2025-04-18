@@ -11,6 +11,7 @@ import {
   Legend,
 } from 'recharts';
 import TireChart from '../components/TireChart';
+import GearChart from '../components/GearChart';
 
 export default function UploadPage() {
   const [files, setFiles] = useState([]);
@@ -164,8 +165,11 @@ export default function UploadPage() {
                 </LineChart>
               </ResponsiveContainer>
 
-              {/* Tire Pressure + Temp */}
+              {/* Tire Pressure + Temperature Charts */}
               <TireChart data={stint.data} />
+
+              {/* Gear Change Chart */}
+              <GearChart data={stint.data} />
             </div>
           ))}
         </section>
