@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SpeedChart from '../components/SpeedChart';
 
 export default function UploadPage() {
   const [files, setFiles] = useState([]);
@@ -20,6 +21,7 @@ export default function UploadPage() {
           method: 'POST',
           body: formData,
         });
+
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           newResults.push({
@@ -76,7 +78,9 @@ export default function UploadPage() {
                 <p className="text-sm text-gray-500 mb-3">
                   {result.data.length} rows parsed
                 </p>
-                <div className="overflow-x-auto text-sm border rounded">
+
+                {/* Data Table Preview */}
+                <div className="overflow-x-auto text-sm border rounded mb-6">
                   <table className="min-w-full">
                     <thead>
                       <tr className="bg-gray-100">
@@ -98,6 +102,9 @@ export default function UploadPage() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Speed Chart */}
+                <SpeedChart data={result.data} />
               </div>
             ))}
           </div>
