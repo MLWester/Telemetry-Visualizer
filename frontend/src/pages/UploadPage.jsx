@@ -13,6 +13,7 @@ import {
 import TireChart from '../components/TireChart';
 import GearChart from '../components/GearChart';
 import InputConsistencyChart from '../components/InputConsistencyChart';
+import BrakingEfficiencyChart from '../components/BrakingEfficiencyChart';
 
 export default function UploadPage() {
   const [files, setFiles] = useState([]);
@@ -121,59 +122,30 @@ export default function UploadPage() {
                 ))}
               </div>
 
-              {/* Speed / Throttle / Brake Chart */}
+              {/* Speed / Throttle / Brake */}
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={stint.data}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="Time"
-                    tick={{ fontSize: 12 }}
-                    tickFormatter={formatTime}
-                  />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    formatter={(value, name) => [`${value}`, name]}
-                    labelFormatter={formatTime}
-                  />
+                  <XAxis dataKey="Time" tickFormatter={formatTime} />
+                  <YAxis />
+                  <Tooltip labelFormatter={formatTime} />
                   <Legend />
                   {visible.Speed && (
-                    <Line
-                      type="monotone"
-                      dataKey="Speed"
-                      stroke="#3b82f6"
-                      strokeWidth={2}
-                      dot={false}
-                    />
+                    <Line type="monotone" dataKey="Speed" stroke="#3b82f6" strokeWidth={2} dot={false} />
                   )}
                   {visible.Throttle && (
-                    <Line
-                      type="monotone"
-                      dataKey="Throttle"
-                      stroke="#10b981"
-                      strokeWidth={2}
-                      dot={false}
-                    />
+                    <Line type="monotone" dataKey="Throttle" stroke="#10b981" strokeWidth={2} dot={false} />
                   )}
                   {visible.Brake && (
-                    <Line
-                      type="monotone"
-                      dataKey="Brake"
-                      stroke="#ef4444"
-                      strokeWidth={2}
-                      dot={false}
-                    />
+                    <Line type="monotone" dataKey="Brake" stroke="#ef4444" strokeWidth={2} dot={false} />
                   )}
                 </LineChart>
               </ResponsiveContainer>
 
-              {/* Tire Pressure + Temperature */}
               <TireChart data={stint.data} />
-
-              {/* Gear Change */}
               <GearChart data={stint.data} />
-
-              {/* Input Consistency */}
               <InputConsistencyChart data={stint.data} />
+              <BrakingEfficiencyChart data={stint.data} />
             </div>
           ))}
         </section>
