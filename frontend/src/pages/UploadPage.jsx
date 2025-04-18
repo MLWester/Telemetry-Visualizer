@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import TireChart from '../components/TireChart';
 import GearChart from '../components/GearChart';
+import InputConsistencyChart from '../components/InputConsistencyChart';
 
 export default function UploadPage() {
   const [files, setFiles] = useState([]);
@@ -165,11 +166,14 @@ export default function UploadPage() {
                 </LineChart>
               </ResponsiveContainer>
 
-              {/* Tire Pressure + Temperature Charts */}
+              {/* Tire Pressure + Temperature */}
               <TireChart data={stint.data} />
 
-              {/* Gear Change Chart */}
+              {/* Gear Change */}
               <GearChart data={stint.data} />
+
+              {/* Input Consistency */}
+              <InputConsistencyChart data={stint.data} />
             </div>
           ))}
         </section>
