@@ -1,17 +1,32 @@
 import { useState } from 'react';
-import SpeedChart from '../components/SpeedChart';
+import { useTelemetry } from '../context/TelemetryContext';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  Legend,
+} from 'recharts';
+import TireChart from '../components/TireChart';
 
 export default function UploadPage() {
   const [files, setFiles] = useState([]);
-  const [uploadResults, setUploadResults] = useState([]);
+  const { telemetryData, addTelemetry, clearTelemetry } = useTelemetry();
+
+  const [visible, setVisible] = useState({
+    Speed: true,
+    Throttle: true,
+    Brake: true,
+  });
 
   const handleFileChange = (e) => {
     setFiles(Array.from(e.target.files));
   };
 
   const handleUpload = async () => {
-    const newResults = [];
-
     for (const file of files) {
       const formData = new FormData();
       formData.append('file', file);
@@ -24,17 +39,19 @@ export default function UploadPage() {
 
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          newResults.push({
-            fileName: file.name,
-            data,
-          });
+          addTelemetry({ label: file.name, data });
         }
       } catch (err) {
         console.error('Upload failed:', err);
       }
     }
+    setFiles([]);
+  };
 
-    setUploadResults(newResults);
+  const formatTime = (value) => {
+    const minutes = Math.floor(value / 60);
+    const seconds = Math.floor(value % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
   };
 
   return (
@@ -55,12 +72,20 @@ export default function UploadPage() {
           onChange={handleFileChange}
           className="mb-4 block w-full text-sm"
         />
-        <button
-          onClick={handleUpload}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow"
-        >
-          Upload
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={handleUpload}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow"
+          >
+            Upload
+          </button>
+          <button
+            onClick={clearTelemetry}
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded shadow"
+          >
+            Clear All
+          </button>
+        </div>
         {files.length > 0 && (
           <p className="mt-2 text-sm text-gray-600">
             {files.length} file{files.length > 1 ? 's' : ''} selected
@@ -68,46 +93,81 @@ export default function UploadPage() {
         )}
       </section>
 
-      {uploadResults.length > 0 && (
+      {telemetryData.length > 0 && (
         <section>
-          <h2 className="text-2xl font-semibold mb-4">Upload Summary</h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            {uploadResults.map((result, index) => (
-              <div key={index} className="bg-white rounded-lg shadow border border-gray-200 p-5">
-                <h3 className="text-lg font-semibold mb-1">{result.fileName}</h3>
-                <p className="text-sm text-gray-500 mb-3">
-                  {result.data.length} rows parsed
-                </p>
+          <h2 className="text-2xl font-semibold mb-4">Telemetry Charts</h2>
+          {telemetryData.map((stint, index) => (
+            <div key={index} className="mb-12 bg-white p-6 rounded shadow border border-gray-200">
+              <h3 className="text-lg font-semibold mb-2">{stint.label}</h3>
 
-                {/* Data Table Preview */}
-                <div className="overflow-x-auto text-sm border rounded mb-6">
-                  <table className="min-w-full">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        {Object.keys(result.data[0] || {}).slice(0, 6).map((key, idx) => (
-                          <th key={idx} className="p-2 text-left border-b font-medium">
-                            {key}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        {Object.values(result.data[0] || {}).slice(0, 6).map((val, idx) => (
-                          <td key={idx} className="p-2 border-b text-gray-700">
-                            {val}
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Speed Chart */}
-                <SpeedChart data={result.data} />
+              {/* Toggle Buttons */}
+              <div className="flex gap-3 mb-4 text-sm">
+                {["Speed", "Throttle", "Brake"].map((key) => (
+                  <button
+                    key={key}
+                    onClick={() =>
+                      setVisible((prev) => ({ ...prev, [key]: !prev[key] }))
+                    }
+                    className={`px-3 py-1 rounded border shadow-sm ${
+                      visible[key]
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {visible[key] ? `Hide ${key}` : `Show ${key}`}
+                  </button>
+                ))}
               </div>
-            ))}
-          </div>
+
+              {/* Speed / Throttle / Brake Chart */}
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={stint.data}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="Time"
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={formatTime}
+                  />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    formatter={(value, name) => [`${value}`, name]}
+                    labelFormatter={formatTime}
+                  />
+                  <Legend />
+                  {visible.Speed && (
+                    <Line
+                      type="monotone"
+                      dataKey="Speed"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  )}
+                  {visible.Throttle && (
+                    <Line
+                      type="monotone"
+                      dataKey="Throttle"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  )}
+                  {visible.Brake && (
+                    <Line
+                      type="monotone"
+                      dataKey="Brake"
+                      stroke="#ef4444"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+
+              {/* Tire Pressure + Temp */}
+              <TireChart data={stint.data} />
+            </div>
+          ))}
         </section>
       )}
     </div>
